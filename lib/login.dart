@@ -10,11 +10,11 @@ class LoginScreen extends StatefulWidget {
   }
 }
 
-login(String email, String password) {
-  UserService().login(email, password);
-}
-
 class LoginScreenState extends State<LoginScreen> {
+  login(String email, String password) {
+    UserService().login(email, password);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -59,7 +59,7 @@ class LoginScreenState extends State<LoginScreen> {
                 child: Text("Login"),
               ),
               onSubmit: (formValue) async {
-                login(formValue["email"], formValue["password"]);
+                this.login(formValue["email"], formValue["password"]);
               },
             ),
           ),

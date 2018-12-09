@@ -6,109 +6,98 @@ import 'package:todo_app_frontend/models/todo.dart';
 class TodoService {
   Future<List<Todo>> getAll() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String url = 'http://10.0.2.2:3000/todos';
-    List<Todo> todos;
-    try {
-      String token = prefs.getString('x-auth');
-      var res = await http.get(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "x-auth": token,
-        },
-      );
-      todos = json.decode(res.body);
-    } catch (e) {
-      return todos;
-    }
+    String server = prefs.getString("server-url");
+    String url = server + '/todos';
+    String token = prefs.getString('x-auth');
+    var res = await http.get(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "x-auth": token,
+      },
+    );
 
-    return todos;
+    final parsed = json.decode(res.body).cast<Map<String, dynamic>>();
+    List<Todo> todoList =
+        parsed.map<Todo>((json) => Todo.fromJson(json)).toList();
+    return todoList;
   }
 
   Future<Todo> getByID(String id) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String url = 'http://10.0.2.2:3000/todos/' + id;
+    String server = prefs.getString("server-url");
+    String url = server + '/todos/' + id;
     Todo todo;
-    try {
-      String token = prefs.getString('x-auth');
-      var res = await http.get(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "x-auth": token,
-        },
-      );
-      todo = json.decode(res.body);
-    } catch (e) {
-      return todo;
-    }
 
+    String token = prefs.getString('x-auth');
+    var res = await http.get(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "x-auth": token,
+      },
+    );
+    todo = json.decode(res.body);
     return todo;
   }
 
   Future<Todo> createTodo(Todo todo) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String url = 'http://10.0.2.2:3000/todos/';
+    String server = prefs.getString("server-url");
+    String url = server + '/todos/';
     var body = json.encode(todo);
     Todo createdTodo;
-    try {
-      String token = prefs.getString('x-auth');
-      var res = await http.post(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "x-auth": token,
-        },
-        body: body,
-      );
-      createdTodo = json.decode(res.body);
-    } catch (e) {
-      return createdTodo;
-    }
+
+    String token = prefs.getString('x-auth');
+    var res = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "x-auth": token,
+      },
+      body: body,
+    );
+    createdTodo = json.decode(res.body);
 
     return createdTodo;
   }
 
   Future<Todo> deleteByID(String id) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String url = 'http://10.0.2.2:3000/todos/' + id;
+    String server = prefs.getString("server-url");
+    String url = server + '/todos/' + id;
     Todo todo;
-    try {
-      String token = prefs.getString('x-auth');
-      var res = await http.delete(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "x-auth": token,
-        },
-      );
-      todo = json.decode(res.body);
-    } catch (e) {
-      return todo;
-    }
+
+    String token = prefs.getString('x-auth');
+    var res = await http.delete(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "x-auth": token,
+      },
+    );
+    todo = json.decode(res.body);
 
     return todo;
   }
 
   Future<Todo> updateByID(String id, String text) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String url = 'http://10.0.2.2:3000/todos/' + id;
+    String server = prefs.getString("server-url");
+    String url = server + '/todos/' + id;
     Todo todo = new Todo(text: text);
     var body = json.encode(todo);
-    try {
-      String token = prefs.getString('x-auth');
-      var res = await http.patch(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "x-auth": token,
-        },
-        body: body,
-      );
-      todo = json.decode(res.body);
-    } catch (e) {
-      return todo;
-    }
+
+    String token = prefs.getString('x-auth');
+    var res = await http.patch(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "x-auth": token,
+      },
+      body: body,
+    );
+    todo = json.decode(res.body);
 
     return todo;
   }

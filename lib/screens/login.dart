@@ -1,43 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:todo_app_frontend/UI/alert.dart';
+
+import 'package:todo_app_frontend/models/user.dart';
 import 'package:todo_app_frontend/screens/signup.dart';
 import 'package:todo_app_frontend/screens/todos.dart';
-
 import '../services/userService.dart';
 
 class LoginScreen extends StatefulWidget {
-  void login() {
-    //  bool res = await UserService().login(
-    //             formValue["email"].toString().trim(),
-    //             formValue["password"].toString().trim(),
-    //           );
-    //           if (res) {
-    //             Navigator.of(context).pushReplacement(
-    //                 MaterialPageRoute(builder: (context) => TodoScreen()));
-    //           } else {
-    //             print(res);
-    //             // return showDialog(
-    //             //   context: context,
-    //             //   barrierDismissible: false,
-    //             //   builder: (BuildContext context) {
-    //             //     return AlertDialog(
-    //             //       title: Text("Error"),
-    //             //       content: Text("Please check Username Or Password"),
-    //             //       actions: <Widget>[
-    //             //         FlatButton(
-    //             //           child: Text("Okay"),
-    //             //           onPressed: () {
-    //             //             Navigator.of(context).pop();
-    //             //           },
-    //             //         )
-    //             //       ],
-    //             //     );
-    //             //   },
-    //             // );
-    //           }
-  }
-
-  static String tag = "page-login";
-
   @override
   State<StatefulWidget> createState() {
     return LoginScreenState();
@@ -45,6 +14,16 @@ class LoginScreen extends StatefulWidget {
 }
 
 class LoginScreenState extends State<LoginScreen> {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  @override
+  void dispose() {
+    // Clean up the controller when the Widget is disposed
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final logo = Hero(
@@ -57,6 +36,7 @@ class LoginScreenState extends State<LoginScreen> {
     );
 
     final email = TextFormField(
+      controller: emailController,
       keyboardType: TextInputType.emailAddress,
       autofocus: false,
       decoration: InputDecoration(
@@ -67,10 +47,11 @@ class LoginScreenState extends State<LoginScreen> {
           borderSide: BorderSide(color: Colors.lightBlue),
         ),
       ),
-      initialValue: 'dhananjay@example.com',
+      //initialValue: 'dhananjay@example.com',
     );
 
     final password = TextFormField(
+      controller: passwordController,
       autofocus: false,
       obscureText: true,
       decoration: InputDecoration(
@@ -81,7 +62,7 @@ class LoginScreenState extends State<LoginScreen> {
           borderSide: BorderSide(color: Colors.lightBlue),
         ),
       ),
-      initialValue: 'qwerty123',
+      //initialValue: 'qwerty123',
     );
 
     final loginButton = Padding(
@@ -99,8 +80,18 @@ class LoginScreenState extends State<LoginScreen> {
           ),
           height: 48.0,
           onPressed: () {
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => TodoScreen()));
+            Future<User> user = UserService()
+                .login(emailController.text, passwordController.text);
+            user.then(
+              (user) {
+                Navigator.of(context).pushReplacement(MaterialPageRoute(
+                    builder: (context) => TodoScreen(
+                          email: user.email,
+                        )));
+              },
+            ).catchError((err) {
+              Alert().showInfoAlert(context, "Error", err);
+            });
           },
         ),
       ),
@@ -133,7 +124,7 @@ class LoginScreenState extends State<LoginScreen> {
       body: Center(
         child: ListView(
           shrinkWrap: true,
-          padding: EdgeInsets.only(left: 24.0, right: 24.0),
+          padding: EdgeInsets.only(left: 25.0, right: 25.0),
           children: <Widget>[
             logo,
             SizedBox(height: 50.0),

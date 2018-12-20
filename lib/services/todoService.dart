@@ -1,6 +1,8 @@
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:todo_app_frontend/models/todo.dart';
 
 class TodoService {
@@ -17,10 +19,13 @@ class TodoService {
       },
     );
 
-    final parsed = json.decode(res.body).cast<Map<String, dynamic>>();
-    List<Todo> todoList =
-        parsed.map<Todo>((json) => Todo.fromJson(json)).toList();
-    return todoList;
+    return parseTodos(res.body);
+  }
+
+  List<Todo> parseTodos(String responseBody) {
+    final parsed = json.decode(responseBody).cast<Map<String, dynamic>>();
+
+    return parsed.map<Todo>((json) => Todo.fromJson(json)).toList();
   }
 
   Future<Todo> getByID(String id) async {
@@ -37,7 +42,7 @@ class TodoService {
         "x-auth": token,
       },
     );
-    todo = json.decode(res.body);
+    todo = Todo.fromJson(json.decode(res.body));
     return todo;
   }
 
@@ -45,9 +50,7 @@ class TodoService {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String server = prefs.getString("server-url");
     String url = server + '/todos/';
-    var body = json.encode(todo);
-    Todo createdTodo;
-
+    var body = json.encode({"text": todo.text});
     String token = prefs.getString('x-auth');
     var res = await http.post(
       url,
@@ -57,9 +60,7 @@ class TodoService {
       },
       body: body,
     );
-    createdTodo = json.decode(res.body);
-
-    return createdTodo;
+    return Todo.fromJson(json.decode(res.body));
   }
 
   Future<Todo> deleteByID(String id) async {
@@ -81,12 +82,12 @@ class TodoService {
     return todo;
   }
 
-  Future<Todo> updateByID(String id, String text) async {
+  Future<Todo> updateByID(Todo updateTodo) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String server = prefs.getString("server-url");
-    String url = server + '/todos/' + id;
-    Todo todo = new Todo(text: text);
-    var body = json.encode(todo);
+    String url = server + '/todos/' + updateTodo.id;
+    var body = json
+        .encode({"text": updateTodo.text, "completed": !updateTodo.completed});
 
     String token = prefs.getString('x-auth');
     var res = await http.patch(
@@ -97,8 +98,6 @@ class TodoService {
       },
       body: body,
     );
-    todo = json.decode(res.body);
-
-    return todo;
+    return Todo.fromJson(json.decode(res.body));
   }
 }

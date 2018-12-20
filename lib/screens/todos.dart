@@ -19,6 +19,26 @@ class TodoScreen extends StatefulWidget {
 class TodoScreenState extends State<TodoScreen> {
   final todoController = TextEditingController();
   Future<List<Todo>> todos;
+
+  void _saveTodo() {
+    Future<Todo> savedTodo =
+        TodoService().createTodo(Todo(text: todoController.text));
+    savedTodo.then((onValue) => setState(() {
+          todoController.clear();
+        }));
+  }
+
+  void _updateTodo(Todo todo) {
+    print(todo.completed);
+    print(todo.text);
+    Future<Todo> updatedTodo = TodoService().updateByID(todo);
+    updatedTodo.then((onValue) => setState(() {}));
+  }
+
+  Future<List<Todo>> _getAllTodos() {
+    return TodoService().getAll();
+  }
+
   @override
   void dispose() {
     todoController.dispose();
@@ -27,11 +47,39 @@ class TodoScreenState extends State<TodoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final todo = TextField(
-      autocorrect: true,
-      keyboardType: TextInputType.multiline,
-      decoration: InputDecoration(
-        border: UnderlineInputBorder(),
+    final saveButton = Expanded(
+      child: RaisedButton(
+        onPressed: () {
+          _saveTodo();
+        },
+        child: Text("Save"),
+      ),
+      flex: 0,
+    );
+
+    final todo = Expanded(
+      child: TextField(
+        controller: todoController,
+        autocorrect: true,
+        keyboardType: TextInputType.multiline,
+        decoration: InputDecoration(
+          border: UnderlineInputBorder(),
+        ),
+      ),
+      flex: 1,
+    );
+
+    final todoInput = Padding(
+      padding: EdgeInsets.only(left: 8.0, right: 8.0, top: 4.0),
+      child: Row(
+        children: <Widget>[
+          todo,
+          SizedBox(
+            width: 20.0,
+          ),
+          saveButton,
+        ],
+        mainAxisAlignment: MainAxisAlignment.start,
       ),
     );
 
@@ -66,7 +114,7 @@ class TodoScreenState extends State<TodoScreen> {
     );
 
     final todoList = FutureBuilder<List<Todo>>(
-      future: TodoService().getAll(),
+      future: _getAllTodos(),
       builder: (BuildContext context, AsyncSnapshot<List<Todo>> snapshot) {
         if (snapshot.data == null) {
           return Center(
@@ -75,6 +123,7 @@ class TodoScreenState extends State<TodoScreen> {
         } else {
           return TodoList(
             todos: snapshot.data,
+            updateCallback: _updateTodo,
           );
         }
       },
@@ -88,7 +137,7 @@ class TodoScreenState extends State<TodoScreen> {
       ),
       body: Column(
         children: <Widget>[
-          todo,
+          todoInput,
           SizedBox(height: 5.0),
           todoList,
         ],
@@ -99,8 +148,8 @@ class TodoScreenState extends State<TodoScreen> {
 
 class TodoList extends StatelessWidget {
   final List<Todo> todos;
-
-  TodoList({Key key, this.todos}) : super(key: key);
+  final UpdateCallback updateCallback;
+  TodoList({Key key, this.todos, this.updateCallback}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -110,9 +159,18 @@ class TodoList extends StatelessWidget {
         itemBuilder: (context, index) {
           return ListTile(
             title: Text(todos[index].text),
+            leading: Checkbox(
+              value: todos[index].completed,
+              onChanged: (value) => updateCallback(todos[index]),
+              tristate: false,
+              activeColor: Colors.blueAccent,
+              materialTapTargetSize: MaterialTapTargetSize.padded,
+            ),
           );
         },
       ),
     );
   }
 }
+
+typedef UpdateCallback = void Function(Todo todo);

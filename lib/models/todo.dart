@@ -18,7 +18,7 @@ class Todo {
       text: json['text'],
       author: json['_author'],
       completed: json['completed'],
-      completedAt: json['completedAt'],
+      completedAt: DateTime.fromMillisecondsSinceEpoch(json['completedAt']),
       id: json['_id'],
     );
   }
